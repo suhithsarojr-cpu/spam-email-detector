@@ -1,0 +1,44 @@
+{
+  "model_type": "TF-IDF (1-2 grams) + Logistic Regression (scikit-learn)",
+  "trained_at": "2026-11-25T18:12:18+00:00",
+  "random_state": 42,
+  "test_fraction": 0.2,
+  "sklearn_version": "1.9.1",
+  "dataset": {
+    "name": "Synthetic sample emails",
+    "source": "Generated locally",
+    "description": "Synthetic, template-generated demo emails (scripts/generate_sample_data.py). No real email data. Metrics on this data are NOT indicative of real-world performance.",
+    "class_counts": {
+      "spam": 290,
+      "ham": 283
+    },
+    "rows_in_file": 600,
+    "rows_used": 573,
+    "rows_dropped": 27
+  },
+  "metrics": {
+    "accuracy": 0.9826,
+    "precision": 1.0,
+    "recall": 0.9655,
+    "f1": 0.9825,
+    "positive_class": "spam",
+    "confusion_matrix": {
+      "labels": [
+        "ham",
+        "spam"
+      ],
+      "matrix": [
+        [
+          57,
+          0
+        ],
+        [
+          2,
+          56
+        ]
+      ]
+    },
+    "train_size": 458,
+    "test_size": 115
+  }
+}
