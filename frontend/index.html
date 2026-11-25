@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email Spam Tester - Educational Demo</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#1b2430;--mute:#5d6b7c;--line:#dfe5ee;--brand:#2456d6;--ok:#1b8a5a;--warn:#b7791f;--bad:#c53030}
+@media (prefers-color-scheme:dark){:root{--bg:#10151d;--card:#1a212c;--ink:#e8edf4;--mute:#9aa7b8;--line:#2b3441;--brand:#6d9bff;--ok:#4cc38a;--warn:#e3a84a;--bad:#f06a6a}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:17px;margin:0;flex:1;min-width:200px}
+nav button,.btn{border:1px solid var(--line);background:transparent;color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on,.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+nav{display:flex;gap:6px}main{max-width:1000px;margin:20px auto;padding:0 16px}
+.banner{background:#fff8e6;color:#6b4e00;border:1px solid #f0d58a;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:600;margin:10px 0 4px}
+input[type=text],input[type=password],textarea,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:190px;resize:vertical}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.mute{color:var(--mute);font-size:13px}
+.err{color:var(--bad);margin-top:8px;min-height:20px}
+.gauge{display:flex;gap:18px;align-items:center}.ring{width:120px;height:120px;transform:rotate(-90deg)}
+.num{font-size:30px;font-weight:700}.verdict{font-size:19px;font-weight:700}
+ul.f{list-style:none;padding:0;margin:10px 0 0}ul.f li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line)}
+.dot{width:10px;height:10px;border-radius:50%;margin-top:7px;flex:none}.ok{background:var(--ok)}.warn{background:var(--warn)}.bad{background:var(--bad)}
+.chip{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:2px 10px;margin:3px 4px 0 0;font-size:13px}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.s{max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;color:#fff}.tag.spam{background:var(--bad)}.tag.ham{background:var(--ok)}
+.wrap{overflow-x:auto}.hidden{display:none}.stat{font-size:26px;font-weight:700}
+</style>
+</head>
+<body>
+<header>
+  <h1>Email Spam Tester <span class="mute">- educational demo</span></h1>
+  <nav id="nav"><button data-v="test" class="on">Test email</button><button data-v="history">History</button><button data-v="model">Model</button></nav>
+</header>
+<main>
+  <div class="banner">Educational demonstration only. This is not a production email security or deliverability system, and results can be wrong.</div>
+
+  <div class="card">
+    <label for="key">API key</label>
+    <div class="row" style="margin-top:0"><input id="key" type="password" placeholder="spk_..." autocomplete="off" style="flex:1;min-width:220px">
+    <button class="btn" id="savekey">Save</button></div>
+    <div class="mute">Keys are created by the administrator (see README). The key is kept in this browser only.</div>
+  </div>
+
+  <section id="v-test">
+    <div class="grid">
+      <div class="card">
+        <label for="subject">Subject</label><input id="subject" type="text" maxlength="300" placeholder="Email subject">
+        <label for="body">Message</label><textarea id="body" maxlength="20000" placeholder="Paste the email message here"></textarea>
+        <div class="row"><label style="margin:0;font-weight:400"><input id="save" type="checkbox" checked> Save this message in my history</label></div>
+        <div class="row"><button class="btn primary" id="go">Test email</button><button class="btn" id="clear">Clear</button><span id="busy" class="mute hidden">Analysing...</span></div>
+        <div class="err" id="err" role="alert"></div>
+      </div>
+      <div class="card" id="result">
+        <div class="mute" id="empty">Results will appear here after you test an email.</div>
+        <div id="out" class="hidden">
+          <div class="gauge">
+            <svg class="ring" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="var(--line)" stroke-width="12"/><circle id="arc" cx="60" cy="60" r="50" fill="none" stroke="var(--ok)" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/></svg>
+            <div><div class="num"><span id="risk">0</span><span class="mute">/100</span></div><div class="verdict" id="verdict"></div><div class="mute" id="conf"></div></div>
+          </div>
+          <p id="summary"></p>
+          <strong>Content checks</strong><ul class="f" id="findings"></ul>
+          <div style="margin-top:10px"><strong>Influential words</strong><div id="terms"></div><div class="mute" id="disc"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="v-history" class="hidden">
+    <div class="card">
+      <div class="row" style="margin-top:0"><input id="q" type="text" placeholder="Search subject or message" style="flex:1;min-width:180px">
+        <select id="lab" style="width:auto"><option value="">All</option><option value="spam">Spam</option><option value="ham">Not spam</option></select>
+        <button class="btn" id="delall">Delete all my history</button></div>
+      <div class="row"><span class="stat" id="st-total">0</span><span class="mute">tests</span><span class="stat" id="st-spam">0</span><span class="mute">spam</span><span class="stat" id="st-ham">0</span><span class="mute">not spam</span></div>
+      <div class="wrap"><table><thead><tr><th>Time</th><th>Subject</th><th>Result</th><th>Confidence</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+      <div class="row"><button class="btn" id="prev">Previous</button><span class="mute" id="pg"></span><button class="btn" id="next">Next</button></div>
+    </div>
+  </section>
+
+  <section id="v-model" class="hidden"><div class="card" id="mi">Loading...</div></section>
+</main>
+<script>
+const API = location.port === "8000" ? "" : "http://localhost:8000";
+const $ = id => document.getElementById(id);
+let page = 1, pages = 1;
+$("key").value = localStorage.getItem("spam_api_key") || "";
+$("savekey").onclick = () => { localStorage.setItem("spam_api_key", $("key").value.trim()); $("err").textContent = "API key saved."; };
+
+async function call(path, opts = {}) {
+  const r = await fetch(API + path, { ...opts, headers: { "Content-Type": "application/json", "X-API-Key": $("key").value.trim(), ...(opts.headers || {}) } });
+  if (r.status === 204) return null;
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    const msg = Array.isArray(d.detail) ? d.detail.map(x => x.msg.replace("Value error, ", "")).join(" ") : (d.detail || "Request failed.");
+    throw new Error(msg);
+  }
+  return d;
+}
+function show(v) {
+  for (const s of ["test", "history", "model"]) $("v-" + s).classList.toggle("hidden", s !== v);
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  if (v === "history") loadHistory(); if (v === "model") loadModel();
+}
+document.querySelectorAll("#nav button").forEach(b => b.onclick = () => show(b.dataset.v));
+
+$("clear").onclick = () => { $("subject").value = ""; $("body").value = ""; $("err").textContent = ""; $("out").classList.add("hidden"); $("empty").classList.remove("hidden"); };
+$("go").onclick = async () => {
+  $("err").textContent = ""; $("busy").classList.remove("hidden"); $("go").disabled = true;
+  try {
+    const d = await call("/api/predict", { method: "POST", body: JSON.stringify({ subject: $("subject").value, body: $("body").value, save_message: $("save").checked }) });
+    render(d);
+  } catch (e) { $("err").textContent = e.message; }
+  finally { $("busy").classList.add("hidden"); $("go").disabled = false; }
+};
+function render(d) {
+  $("empty").classList.add("hidden"); $("out").classList.remove("hidden");
+  const col = d.risk_score >= 60 ? "var(--bad)" : d.risk_score >= 35 ? "var(--warn)" : "var(--ok)";
+  $("arc").style.stroke = col; $("arc").style.strokeDashoffset = 314 * (1 - d.risk_score / 100);
+  $("risk").textContent = d.risk_score; $("verdict").textContent = d.verdict; $("verdict").style.color = col;
+  $("conf").textContent = `Model: ${d.is_spam ? "spam" : "not spam"} (${(d.confidence * 100).toFixed(1)}% confidence)`;
+  $("summary").textContent = d.explanation.summary;
+  const ul = $("findings"); ul.replaceChildren();
+  d.findings.forEach(f => { const li = document.createElement("li"), dot = document.createElement("span"), t = document.createElement("div");
+    dot.className = "dot " + f.severity; t.innerHTML = ""; const b = document.createElement("strong"); b.textContent = f.label;
+    const m = document.createElement("div"); m.className = "mute"; m.textContent = f.detail; t.append(b, m); li.append(dot, t); ul.append(li); });
+  const tm = $("terms"); tm.replaceChildren();
+  d.explanation.top_terms.forEach(x => { const c = document.createElement("span"); c.className = "chip"; c.textContent = x.term; tm.append(c); });
+  $("disc").textContent = d.explanation.disclaimer;
+}
+async function loadHistory() {
+  try {
+    const p = new URLSearchParams({ page, page_size: 8, q: $("q").value, label: $("lab").value }); if (!$("q").value) p.delete("q"); if (!$("lab").value) p.delete("label");
+    const [h, s] = await Promise.all([call("/api/history?" + p), call("/api/stats")]);
+    pages = h.pages; $("pg").textContent = `Page ${h.page} of ${h.pages} (${h.total})`;
+    $("st-total").textContent = s.total_predictions; $("st-spam").textContent = s.spam_count; $("st-ham").textContent = s.ham_count;
+    const tb = $("rows"); tb.replaceChildren();
+    if (!h.items.length) { const tr = tb.insertRow(), td = tr.insertCell(); td.colSpan = 5; td.className = "mute"; td.textContent = "No tests found."; }
+    h.items.forEach(i => { const tr = tb.insertRow();
+      tr.insertCell().textContent = new Date(i.created_at).toLocaleString();
+      const sc = tr.insertCell(); sc.className = "s"; sc.textContent = i.subject || "(no subject)";
+      const rc = tr.insertCell(), tag = document.createElement("span"); tag.className = "tag " + i.label; tag.textContent = i.label === "spam" ? "Spam" : "Not spam"; rc.append(tag);
+      tr.insertCell().textContent = (i.confidence * 100).toFixed(1) + "%";
+      const b = document.createElement("button"); b.className = "btn"; b.textContent = "Delete";
+      b.onclick = async () => { await call("/api/history/" + i.id, { method: "DELETE" }); loadHistory(); }; tr.insertCell().append(b); });
+  } catch (e) { $("pg").textContent = e.message; }
+}
+$("prev").onclick = () => { if (page > 1) { page--; loadHistory(); } };
+$("next").onclick = () => { if (page < pages) { page++; loadHistory(); } };
+$("q").oninput = $("lab").onchange = () => { page = 1; loadHistory(); };
+$("delall").onclick = async () => { if (confirm("Delete all of your saved history?")) { await call("/api/history", { method: "DELETE" }); loadHistory(); } };
+async function loadModel() {
+  const el = $("mi");
+  try {
+    const m = await fetch(API + "/api/model-info").then(r => r.json()); el.replaceChildren();
+    const add = (tag, text, cls) => { const e = document.createElement(tag); e.textContent = text; if (cls) e.className = cls; el.append(e); };
+    if (!m.model_available) return add("p", "No trained model found. Run: python -m scripts.train_model");
+    add("h3", m.model_type); add("p", `Trained: ${m.trained_at}`, "mute");
+    add("p", `Dataset: ${m.dataset.name} - ${m.dataset.rows_used} rows used (${JSON.stringify(m.dataset.class_counts)}). ${m.dataset.description}`);
+    const x = m.metrics; add("p", `Held-out test set (${x.test_size} rows): accuracy ${x.accuracy}, precision ${x.precision}, recall ${x.recall}, F1 ${x.f1}`);
+    m.notes.forEach(n => add("p", n, "mute"));
+  } catch (e) { el.textContent = "Could not reach the API. Is the backend running?"; }
+}
+</script>
+</body>
+</html>
