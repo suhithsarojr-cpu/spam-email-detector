@@ -85,7 +85,7 @@ td.s{max-width:380px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   <section id="v-model" class="hidden"><div class="card" id="mi">Loading...</div></section>
 </main>
 <script>
-const API = location.port === "8000" ? "" : "http://localhost:8000";
+const API = location.port === "8000" ? "" : "https://spam-email-detector-api.onrender.com";
 const $ = id => document.getElementById(id);
 let page = 1, pages = 1;
 $("key").value = localStorage.getItem("spam_api_key") || "";
